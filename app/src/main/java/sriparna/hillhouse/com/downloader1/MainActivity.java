@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
         Uri downloadURI = Uri.parse(Constants.APK_DOWNLOAD_URL);
         DownloadManager.Request request = new DownloadManager.Request(downloadURI);
-        request.setVisibleInDownloadsUi(true);
+        request.setVisibleInDownloadsUi(false);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
 
 
         File file = new File(Constants.APK_DOWNLOAD_DESTINATION);
