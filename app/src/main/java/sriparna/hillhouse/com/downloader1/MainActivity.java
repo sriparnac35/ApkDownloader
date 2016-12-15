@@ -1,6 +1,7 @@
 package sriparna.hillhouse.com.downloader1;
 
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -22,15 +24,30 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity {
-    private DownloadReceiver receiver = new DownloadReceiver();
+    private ProgressBar progressBar = null;
+    private Uri uri = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "apk download complete", Toast.LENGTH_SHORT).show();
+                Intent viewIntent = new Intent();
+                viewIntent.setAction(Intent.ACTION_VIEW);
+                viewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                viewIntent.setDataAndType(uri, "application/vnd.android.package-archive");
+                context.startActivity(viewIntent);
+                progressBar.setVisibility(View.GONE);
 
+
+            }
+        }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        progressBar = (ProgressBar)findViewById(R.id.progressbar);
         Button button = (Button)findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void downloadApp(){
+        progressBar.setVisibility(View.VISIBLE);
         final DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         Uri downloadURI = Uri.parse(Constants.APK_DOWNLOAD_URL);
@@ -65,10 +83,9 @@ public class MainActivity extends AppCompatActivity {
             file.delete();
         }
 
-        Uri uri = Uri.parse("file://" + Constants.APK_DOWNLOAD_DESTINATION);
+        this.uri = Uri.parse("file://" + Constants.APK_DOWNLOAD_DESTINATION);
 
         request.setDestinationUri(uri);
-        receiver.setURL(Constants.APK_DOWNLOAD_DESTINATION);
         downloadManager.enqueue(request);
     }
 
